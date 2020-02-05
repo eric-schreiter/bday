@@ -33,20 +33,28 @@
     width:3rem;
   }
   .bdayYear {
-    width:4.5rem;
+    width:3.8rem;
   }
   input::-webkit-outer-spin-button,
   input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
   }
-  
+
   /* Firefox */
   input[type="number"] {
     -moz-appearance: textfield;
   }
   span {
     font-size:2rem;
+  }
+  // shows a dot inside span
+  span:after {
+    content: '.';
+  }
+  // hide dot on the last span
+  span:nth-last-child(1):after {
+    content: '';
   }
 }
 

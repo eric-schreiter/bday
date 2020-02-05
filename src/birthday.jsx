@@ -23,9 +23,6 @@ export default function Birthday({ state, setState }) {
   // set the order we want to show the input fields
   // this takes account of i18n (en is month/day/year)
   const displayOrder = ['day', 'month', 'year'];
-  // count elements - we need this to conditional show the dot between elements
-  // maybe its better to do this with css only? (hint: last-child:after)
-  const elementsToShow = displayOrder.length;
 
   /**
    * emptys errorMsg, gets Input-Element Value, performs native Validation
@@ -253,22 +250,6 @@ export default function Birthday({ state, setState }) {
   };
 
   /**
-   * shows conditionally a DOT between elements
-   *
-   * e.g. ele1 DOT ele2 DOT ele3
-   *
-   * maybe ist better to do this with pure CSS
-   *
-   * @param {number} currentIndex - the index of the current element
-   * @returns {null|*}
-   * @constructor
-   */
-  const ShowDot = (currentIndex) => {
-    if (currentIndex + 1 < elementsToShow) return (<span>.</span>);
-    return null;
-  };
-
-  /**
    * renders a single input field with given settings
    *
    * @param {object} elementAttributeSettings - the settings for the element
@@ -294,15 +275,17 @@ export default function Birthday({ state, setState }) {
    */
   const renderFields = (
     <>
-      {displayOrder.map((order, currentIndex) => {
-        const elementAttributeSettings = inputFieldSettings[order];
-        return (
-          <Fragment key={elementAttributeSettings.className}>
-            { InputField(elementAttributeSettings) }
-            { ShowDot(currentIndex)}
-          </Fragment>
-        );
-      })}
+      <div className="testWrapper">
+        {displayOrder.map((order) => {
+          const elementAttributeSettings = inputFieldSettings[order];
+          return (
+            <Fragment key={elementAttributeSettings.className}>
+              { InputField(elementAttributeSettings) }
+              <span />
+            </Fragment>
+          );
+        })}
+      </div>
       <p>{errorMsg}</p>
     </>
   );
