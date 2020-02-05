@@ -1,27 +1,24 @@
-import React, { useState, Fragment } from 'react';
+import React, {
+  useState, Fragment,
+} from 'react';
 import './styles.scss';
 
 import {
-  UseFocus,
   isValidDate,
+  setFocusToNextElement,
+  setFocusToPrevElement,
 } from './helpers';
 
 import {
   today,
-  currentYear,
   currentYearShort,
   minYearShort,
   lastCentury,
-  MAX_PASSENGER_AGE,
+  inputFieldSettings,
 } from './bday.config';
 
 export default function Birthday({ state, setState }) {
   const [errorMsg, setErrorMsg] = useState('');
-  // const [inputDay, setFocusToInputDay] = UseFocus();
-  const [inputDayTest, setFocusToInputDay] = UseFocus();
-  const [inputMonth, setFocusToInputMonth] = UseFocus();
-  const [inputYear, setFocusToInputYear] = UseFocus();
-
 
   // set the order we want to show the input fields
   // this takes account of i18n (en is month/day/year)
@@ -33,7 +30,7 @@ export default function Birthday({ state, setState }) {
   /**
    * emptys errorMsg, gets Input-Element Value, performs native Validation
    *
-   * @param refElement - the ref-name of the Field
+   * @param {object} refElement - the ref-name of the Field
    * @returns {{valid: *, rangeOverflow: *, inputAsInteger: number}}
    */
   const getRefValueAndValidate = (refElement) => {
@@ -64,25 +61,21 @@ export default function Birthday({ state, setState }) {
     };
   };
 
-  const getNextElementToFocus = (currentElement) => {
-    const len = displayOrder.length;
-    const current = displayOrder.indexOf(currentElement);
-    console.log('foo', len, current);
-    if (len === current) return;
-    const next = displayOrder[len];
-  };
   /**
    * validate user input of Day
+   *
+   * @param {object} ref - ref of current element
    */
   // eslint-disable-next-line consistent-return
-  const handleChangeDays = () => {
+  const handleChangeDays = (ref) => {
     const {
       inputLength, inputAsInteger, rangeOverflow, valid,
-    } = getRefValueAndValidate(inputDayTest);
+    } = getRefValueAndValidate(ref);
 
     // validation says we are over the max value
     if (rangeOverflow) {
-      inputDayTest.current.value = '';
+      // eslint-disable-next-line no-param-reassign
+      ref.current.value = '';
       // i18n
       setErrorMsg('DAY_NOT_VALID');
     }
@@ -94,10 +87,10 @@ export default function Birthday({ state, setState }) {
       && inputAsInteger <= 9
       && inputLength <= 1
     ) {
-      inputDayTest.current.value = `0${inputAsInteger}`;
+      // eslint-disable-next-line no-param-reassign
+      ref.current.value = `0${inputAsInteger}`;
       // we think everything is correct, set input-focus to month
-      // return setFocusToInputMonth();
-      inputMonth.current.focus();
+      return setFocusToNextElement('day', displayOrder, inputFieldSettings);
     }
 
     // we think everything is correct, set input-focus to month
@@ -105,21 +98,24 @@ export default function Birthday({ state, setState }) {
       inputAsInteger > 0
       && inputAsInteger < 32
       && inputLength === 2
-    ) return inputMonth.current.focus();
+    ) return setFocusToNextElement('day', displayOrder, inputFieldSettings);
   };
 
   /**
    * validate user input of Month
+   *
+   * @param {object} ref - ref of current element
    */
   // eslint-disable-next-line consistent-return
-  const handleChangeMonth = () => {
+  const handleChangeMonths = (ref) => {
     const {
       inputLength, inputAsInteger, rangeOverflow, valid,
-    } = getRefValueAndValidate(inputMonth);
+    } = getRefValueAndValidate(ref);
 
     // native validation says we are over the max value
     if (rangeOverflow) {
-      inputMonth.current.value = '';
+      // eslint-disable-next-line no-param-reassign
+      ref.current.value = '';
       // i18n
       return setErrorMsg('MONTH_NOT_VALID');
     }
@@ -127,34 +123,38 @@ export default function Birthday({ state, setState }) {
     // for ux-reason, set leading 0 to month if necessary
     if (
       valid
-        && inputAsInteger >= 2
-        && inputAsInteger <= 9
-        && inputLength <= 1
+      && inputAsInteger >= 2
+      && inputAsInteger <= 9
+      && inputLength <= 1
     ) {
-      inputMonth.current.value = `0${inputAsInteger}`;
+      // eslint-disable-next-line no-param-reassign
+      ref.current.value = `0${inputAsInteger}`;
       // we think everything is correct, set input-focus to month
-      return setFocusToInputYear();
+      return setFocusToNextElement('month', displayOrder, inputFieldSettings);
     }
 
     // we think everything is correct, set input-focus to month
     if (
       valid
-        && inputLength === 2
-    ) return setFocusToInputYear();
+      && inputLength === 2
+    ) return setFocusToNextElement('month', displayOrder, inputFieldSettings);
   };
 
   /**
    * validate user input of Year
+   *
+   * @param {object} ref - ref of current element
    */
   // eslint-disable-next-line consistent-return
-  const handleChangeYear = () => {
+  const handleChangeYears = (ref) => {
     const {
       inputLength, inputAsInteger, rangeOverflow, rangeUnderflow,
-    } = getRefValueAndValidate(inputYear);
+    } = getRefValueAndValidate(ref);
 
     // native validation says we are over the max value
     if (rangeOverflow) {
-      inputYear.current.value = '';
+      // eslint-disable-next-line no-param-reassign
+      ref.current.value = '';
       // i18n
       return setErrorMsg('YEAR_NOT_IN_FUTURE');
     }
@@ -164,7 +164,8 @@ export default function Birthday({ state, setState }) {
       rangeUnderflow
       && inputLength === 4
     ) {
-      inputYear.current.value = '';
+      // eslint-disable-next-line no-param-reassign
+      ref.current.value = '';
       // i18n
       return setErrorMsg('TOO_OLD');
     }
@@ -174,7 +175,8 @@ export default function Birthday({ state, setState }) {
       && inputAsInteger > minYearShort
       && inputAsInteger > currentYearShort
     ) {
-      inputYear.current.value = lastCentury + inputYear.current.value;
+      // eslint-disable-next-line no-param-reassign
+      ref.current.value = lastCentury + ref.current.value;
     }
   };
 
@@ -184,9 +186,9 @@ export default function Birthday({ state, setState }) {
   // eslint-disable-next-line consistent-return
   const handleBirthdayComplete = () => {
     // TODO: maybe we must add optional chaining to babel ;)
-    const day = inputDayTest?.current?.value || '';
-    const month = inputMonth?.current?.value || '';
-    const year = inputYear?.current?.value || '';
+    const day = inputFieldSettings.day.ref?.current?.value || '';
+    const month = inputFieldSettings.month.ref?.current?.value || '';
+    const year = inputFieldSettings.year.ref?.current?.value || '';
 
     if (!(
       day.length === 2
@@ -194,6 +196,7 @@ export default function Birthday({ state, setState }) {
       && year.length === 4
     )) return null;
 
+    // create Date from User Input
     // Month are 0-indexed when used as an argument of Date
     const birthday = new Date(year, month - 1, day, 0, 0, 1);
 
@@ -203,56 +206,50 @@ export default function Birthday({ state, setState }) {
     if (birthday > today) return setErrorMsg('Zukunfts Kind blyat!');
   };
 
-
+  /**
+   * handles backspace key when input-field is already empty
+   *
+   * sets the focus to the previous element
+   * takes displayOrder in account
+   *
+   * @event e
+   */
   const handleEmptyInput = (e) => {
-    handleBirthdayComplete();
-
     // check for backspace-key and length of the input value
     if (!(
       e.target.value.length === 0
       && e.keyCode === 8
     )) return;
 
-    if (e.target.className === 'bdayMonth') {
-      // inputMonth.current.value = inputMonth.current.value.slice(0, -1);
-      setFocusToInputDay();
-    }
-    if (e.target.className === 'bdayYear') {
-      setFocusToInputMonth();
-      // inputMonth.current.value = inputMonth.current.value.slice(0, -1);
-    }
+    // TODO: maybe we must add optional chaining to babel ;)
+    const classname = e.target?.className;
+    let currentElement = '';
+    if (classname === 'bdayDay') currentElement = 'day';
+    if (classname === 'bdayMonth') currentElement = 'month';
+    if (classname === 'bdayYear') currentElement = 'year';
+    setFocusToPrevElement(currentElement, displayOrder, inputFieldSettings);
   };
 
-  // define the Attributes for the input Fields
-  const inputFieldSettings = {
-    day: {
-      className: 'bdayDay',
-      placeholder: 'TT',
-      min: 1,
-      max: 31,
-      onChange: handleChangeDays,
-      onKeyUp: () => {
-      },
-      ref: inputDayTest,
-    },
-    month: {
-      className: 'bdayMonth',
-      placeholder: 'MM',
-      min: 1,
-      max: 12,
-      onChange: handleChangeMonth,
-      onKeyUp: handleEmptyInput,
-      ref: inputMonth,
-    },
-    year: {
-      className: 'bdayYear',
-      placeholder: 'JJJJ',
-      min: currentYear - MAX_PASSENGER_AGE,
-      max: currentYear,
-      onChange: handleChangeYear,
-      onKeyUp: handleEmptyInput,
-      ref: inputYear,
-    },
+  /**
+   * handle input changes for day, month, year
+   *
+   * since every element needs its own validation, we decide here which validation
+   * we use
+   */
+  const handleChanges = {
+    day: () => handleChangeDays(inputFieldSettings.day.ref),
+    month: () => handleChangeMonths(inputFieldSettings.month.ref),
+    year: () => handleChangeYears(inputFieldSettings.year.ref),
+  };
+
+  /**
+   *
+   * @event e - event
+   * @param {array} cb - array with strings of functions we want to call
+   */
+  const handleKeyUp = (e, cb) => {
+    if (cb.includes('handleEmptyInput')) handleEmptyInput(e);
+    if (cb.includes('handleBirthdayComplete')) handleBirthdayComplete();
   };
 
   /**
@@ -260,7 +257,9 @@ export default function Birthday({ state, setState }) {
    *
    * e.g. ele1 DOT ele2 DOT ele3
    *
-   * @param currentIndex - the index of the current element
+   * maybe ist better to do this with pure CSS
+   *
+   * @param {number} currentIndex - the index of the current element
    * @returns {null|*}
    * @constructor
    */
@@ -272,7 +271,7 @@ export default function Birthday({ state, setState }) {
   /**
    * renders a single input field with given settings
    *
-   * @param elementAttributeSettings - the settings for the element
+   * @param {object} elementAttributeSettings - the settings for the element
    * @returns {*}
    * @constructor
    */
@@ -284,8 +283,8 @@ export default function Birthday({ state, setState }) {
       min={elementAttributeSettings.min}
       max={elementAttributeSettings.max}
       step="1"
-      onChange={elementAttributeSettings.onChange}
-      onKeyUp={elementAttributeSettings.onKeyUp}
+      onChange={() => { handleChanges[elementAttributeSettings.onChange](); }}
+      onKeyUp={(e) => { handleKeyUp(e, elementAttributeSettings.onKeyUp); }}
       ref={elementAttributeSettings.ref}
     />
   );
